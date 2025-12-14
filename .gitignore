@@ -1,3 +1,4 @@
 trained_yolo_model
 barcode_decoding.ipynb
 foodAPI.ipynb
+__pycache__

@@ -15,17 +15,20 @@ class Decoder():
             sharpened_barcode_img=self.sharpen_image(barcode_img)
             decoded_info=decode(sharpened_barcode_img)
         if len(decoded_info)==0:
-            return ""
+            raise ValueError("no Barcodes detected")
         barcode_bytes=decoded_info[0].data
         barcode_str=barcode_bytes.decode('utf-8')
         return barcode_str
 
     def get_barcode_image(self, product_image):
         #TODO:the model takes a path to an image, check if it can take the image itself
-        detected_image=self.yolo_model(product_image)
-
-        x1,y1,x2,y2=map(int,detected_image[0].boxes.xyxy[0].tolist())
-        image=detected_image[0].orig_img
+        detected_images=self.yolo_model(product_image)
+        
+        if detected_images[0].boxes.shape[0] == 0:
+            raise ValueError("no Barcodes detected")
+        
+        x1,y1,x2,y2=map(int,detected_images[0].boxes.xyxy[0].tolist())
+        image=detected_images[0].orig_img
         
         padding=7
         x1_padding,y1_padding=max(0,x1-padding),max(0,y1-padding)

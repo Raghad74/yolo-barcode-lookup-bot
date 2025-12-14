@@ -6,7 +6,10 @@ class Product():
 
         url=f'https://world.openfoodfacts.net/api/v2/product/{self.barcode}.json'
         response=requests.get(url)
-        self.openfoodfacts_data_json=response.json()
+        data=response.json()
+        if data.get("status") != 1:
+            raise ValueError(f"Product with Barcode {self.barcode} not found")
+        self.openfoodfacts_data_json=data
     
     def get_name_and_brand(self):
         product = self.openfoodfacts_data_json["product"]
@@ -64,13 +67,13 @@ class Product():
         if is_halal:
             response_str+="\n halal label found"
         else:
-            response_str+="\n halal label has not been found but you can check the ingredient list"
+            response_str+="\n\n halal label has not been found but you can check the ingredient list"
 
-        response_str+="\nSerching for Kosher labels ..."
+        response_str+="\n\nSerching for Kosher labels ..."
         if is_kosher:
             response_str+="\n kosher label found"
         else:
-            response_str+="\n kosher label has not been found but you can check the ingredient list"
+            response_str+="\n\n kosher label has not been found but you can check the ingredient list"
         
         return response_str
 

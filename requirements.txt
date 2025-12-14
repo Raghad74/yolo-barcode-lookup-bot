@@ -3,3 +3,4 @@ opencv-python
 pyzbar
 numpy
 requests
+python-telegram-bot
