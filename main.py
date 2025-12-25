@@ -7,17 +7,18 @@ import numpy as np
 import cv2
 
 
-TOKEN: Final = '8513421764:AAEVqZAMNfKS_ZJsFBztLL5fBXa0X72jiBQ'
+TOKEN: Final   =   '8513421764:AAEVqZAMNfKS_ZJsFBztLL5fBXa0X72jiBQ'
 BOT_USERNAME: Final ='@FoodTruthBot'
 decoder=Decoder()
 
-PRODUCT_METHODS={1 : Product.get_name_and_brand,
+PRODUCT_METHODS = {1 : Product.get_name_and_brand,
                  2 : Product.get_allergens,
                  3 : Product.get_calories,
                  4 : Product.get_is_vegan_info,
-                 5 : Product.get_is_halal_or_kosher,
-                 6 : Product.get_is_gluten_free,
-                 7 : Product.get_nutrition_score}
+                 5 : Product.get_is_halal,
+                 6 : Product.get_is_kosher,
+                 7 : Product.get_is_gluten_free,
+                 8 : Product.get_nutrition_score}
 
 #Commands
 async def start_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
@@ -28,13 +29,14 @@ async def help_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
 
 async def menu_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
     menu_str = "reply with a number from the list below to get the info you want\n"
-    menu_str+= "1 : Name and Brand\n"
+    menu_str += "1 : Name and Brand\n"
     menu_str += "2 : Allergens\n"
     menu_str += "3 : Calories\n"
     menu_str += "4 : Vegan/Vegatarian Status\n"
-    menu_str += "5 : Halal/Kosher Status\n"
-    menu_str += "6 : Gluten Status\n"
-    menu_str += "7 : Nutrition Score\n"
+    menu_str += "5 : Halal Status\n"
+    menu_str += "6 : Kosher Status\n"
+    menu_str += "7 : Gluten Status\n"
+    menu_str += "8 : Nutrition Score\n"
 
     await update.message.reply_text(menu_str)
 
@@ -79,8 +81,10 @@ async def handle_image_message(update: Update, context: ContextTypes.DEFAULT_TYP
     try:
         product=Product(barcode)
     except ValueError as error:
+
         print(error)
         await update.message.reply_text(error)
+
         return
 
     context.user_data['product']=product
@@ -140,7 +144,7 @@ if __name__=='__main__':
     app.add_error_handler(error)
 
     print('Polling...')
-    app.run_polling(poll_interval=3)
+    app.run_polling(poll_interval = 3)
 
 
 
