@@ -1,4 +1,5 @@
 import requests
+from sympy import product
 from .product_dietary_keywords import PORK_KEYWORDS,ALCOHOL_ADDITIVES,ALCOHOL_KEYWORDS,GELATIN_KEYWORDS,KOSHER_SYMBOLS
 
 class Product():
@@ -11,6 +12,7 @@ class Product():
         if data.get("status") != 1:
             raise ValueError(f"Product with Barcode {self.barcode} not found")
         self.openfoodfacts_data_json=data
+
 
     
     def get_name_and_brand(self):
@@ -37,12 +39,15 @@ class Product():
         response_str = f"calories for 100g is {calories_in_100gram} , and per serving is {calories_per_serving}"
         return response_str
 
-    def does_contain(self,keywords):
+    def find_matching_ingredient(self,keywords):
         ingredients_text = self.openfoodfacts_data_json["product"].get("ingredients_text", "")
         if ingredients_text == "":
             raise ValueError("ingredients text not found")
         ingredients_text.lower()
-        return any(word in ingredients_text for word in keywords)
+        for word in keywords:
+            if word in ingredients_text:
+                return word
+        return ""
 
     def get_is_vegan_info(self):
         product = self.openfoodfacts_data_json["product"]
@@ -78,16 +83,22 @@ class Product():
             response_str = "halal label has not been found"
 
         try:
-            pork_status = self.does_contain(PORK_KEYWORDS | GELATIN_KEYWORDS)
-            alcohol_status = self.does_contain(ALCOHOL_KEYWORDS | ALCOHOL_ADDITIVES)
+            pork_ing = self.find_matching_ingredient(PORK_KEYWORDS | GELATIN_KEYWORDS)
+            alcohol_ing = self.find_matching_ingredient(ALCOHOL_KEYWORDS | ALCOHOL_ADDITIVES)
 
-        except ValueError:
+        except ValueError as error:
+            print('error : ',error)
             return response_str
         
-        if pork_status or alcohol_status :
-            response_str += "\n\n this product cotains pork or alcohol"
+        if pork_ing or alcohol_ing :
+            if pork_ing:
+                response_str += f"\n\n this product contains pork, keyword found : {pork_ing}"
+            if alcohol_ing:
+                response_str += f"\n\n this product may contain alcohol, keyword found: {alcohol_ing}"
         else:
             response_str += "\n\n this product is free of pork and alcohol"
+            response_str += "\n\n The analysis is based solely on the ingredients listed and does not take into account processing methods."
+
 
         return response_str
         
@@ -98,18 +109,23 @@ class Product():
         is_kosher = any("kosher" in label for label in labels)
 
         try:
-            kosher_symbol_flag = self.does_contain(KOSHER_SYMBOLS)
-        except ValueError :
-            kosher_symbol_flag = False
+            pork_ing = self.find_matching_ingredient(PORK_KEYWORDS | GELATIN_KEYWORDS)
+        except ValueError as error:
+            print('error : ',error)
 
-        if is_kosher or kosher_symbol_flag:
+        if is_kosher:
             response_str = "kosher label found"
         else:
             response_str = "kosher label has not been found"
         
+        if pork_ing:
+                response_str += f"\n\n this product contains pork, keyword found : {pork_ing}"
+        else:
+            response_str += "\n\n this product is free of pork"
+            response_str += "\n\n The analysis is based solely on the ingredients listed and does not take into account processing methods."
 
-        
         return response_str
+
 
     def get_nutrition_score(self):
         product = self.openfoodfacts_data_json["product"]
